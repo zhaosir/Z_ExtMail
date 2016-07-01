@@ -1,0 +1,35 @@
+$Id: cssclean.txt,v 1.01 2011/07/11 23:46:05 sbajic Exp $
+
+HASH_DRV NIGHTLY MAINTENANCE
+
+The tool for nightly maintenance - dspam_clean - does not work with hash_drv,
+it does not do any cleaning.
+
+You have to clean it by yourself. There are the two steps to do:
+
+- first, you should remove old signature files. These files are located
+in user.sig directory and have extension .sig. They are needed only
+for dspam retraining, so you can remove them if they are older than two weeks.
+- second, you should purge databases. They are located in user.css
+files and contain a set of tokens with counters: SPAM and NONSPAM, which count
+how many times the token appeared in spams and innocent mails.
+
+There is a special tool for cleaning it - cssclean:
+
+cssclean [file.css] {heavy}
+
+Cssclean implements its own counter for each token. It increments every
+cleaning - so if you run cssclean every night, it works like timestamp.
+If DSPAM uses a token, it resets this counter. So cssclean knows which tokens
+were not used for counted time.
+
+Cssclean removes tokens, which are:
+- not used for 15 cleans and ( NONSPAM + SPAM <= 1 ), or
+- not used for 15 cleans and NONSPAM is equal or almost equal SPAM, or
+- not used for 60 cleans and ( NONSPAM*2 + SPAM < 5 ), or
+- not used for 120 cleans.
+
+With special options - heavy - cssclean is more strict and removes
+tokens for which:
+- NONSPAM + SPAM <= 1
+- NONSPAM is equal or almost equal SPAM

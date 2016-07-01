@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><title>DSPAM v3 Verwaltungsbereich</title>
+<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
+<link rel="STYLESHEET" href="$WEB_ROOT$/base.css">
+</head>
+<body bgcolor="#FFFFFF" text="#000000" link="#000000" vlink="#000000" alink="#000000">
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_ADMIN$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status&amp;language=$LANG$">System Status</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=user&amp;language=$LANG$">Benutzer Statistik</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Administration</a></li>
+		<li><a href="dspam.cgi?language=$LANG$">Kontroll Zenter</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Die folgenden Grafiken und Tabellen zeigen die Anzahl der verarbeiteten Nachrichten f&uuml;r jeden Benutzer nebst seinen aktuellen Einstellungen.
+</p>
+
+<table border="0" cellspacing="0" cellpadding="4">
+	<tr>
+		<th>Name</th>
+		<th>Q.Size</th>
+		<th>TP</th>
+		<th>TN</th>
+		<th>FP</th>
+		<th>FN</th>
+		<th>SC</th>
+		<th>IC</th>
+		<th>Mode</th>
+		<th>On Spam</th>
+		<th>BNR</th>
+		<th>Whitelist</th>
+		<th>Sed</th>
+		<th>Sig Loc</th>
+	</tr>
+$TABLE$
+</table>
+
+</div>
+
+</body>
+</html>

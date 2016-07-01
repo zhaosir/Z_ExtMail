@@ -1,0 +1,263 @@
+$Id: mysql_drv.txt,v 1.5 2011/06/28 00:13:48 sbajic Exp $
+
+COPYRIGHT (C) 2002-2012 DSPAM Project
+http://dspam.sourceforge.net
+
+LICENSE
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+ABOUT
+
+mysql_drv is a MySQL storage driver for DSPAM v3.0 and above. This driver
+enables DSPAM to read and write all token, signature, and statistics data
+from a MySQL database. The advantages of using a SQL backend are obvious:
+
+- Centralized data storage
+- Structured queries for information
+- No need for context locking mechanisms
+- Replication and other MySQL features
+
+DSPAM support MySQL 5.0 and greater.
+
+1. CONFIGURING DSPAM
+
+To configure DSPAM to use mysql_drv, use the following arguments while running
+DSPAM's configure:
+
+--with-storage-driver=mysql_drv
+Tells DSPAM to use the mysql_drv driver
+
+--with-mysql-libraries=/path/to/libs
+Tells DSPAM where to find the MySQL client libraries. They are usually
+located in /usr/local/mysql/lib
+
+--with-mysql-includes=/path/to/libs
+Tells DSPAM where to find the MySQL headers. They are usually located in
+/usr/local/mysql/include
+
+--enable-virtual-users
+Tells DSPAM to create virtual user ids for each dspam user. Use this if your
+users don't really exist on the system (e.g. via getpwuid) or if you're doing
+something weird like sharing uids.
+
+After configure has successfully finished, build and install DSPAM using the
+instructions from DSPAM's readme.
+
+2. CREATING MYSQL OBJECTS
+
+Before mysql_drv will function, you must run the mysql_objects-4.1.sql file
+(located in src/tools.mysql_drv) to create the table objects required by the
+driver. See your MySQL documentation for further information.
+
+This script assumes that you have already created a database for DSPAM objects
+and a user with full access to SELECT, INSERT, UPDATE, and DELETE.
+
+If you plan on enabling virtual users (something you'll need to do if the users
+don't actually exist on your system), also run virtual_users.sql.
+
+You may also wish to add this line to the mysqld portion of /etc/my.cnf:
+
+set-variable = max_allowed_packet=8192000
+
+This will extend the query size from 1MB to 8MB; some larger queries may
+cause MySQL to drop connection without this set.
+
+NOTE: The mysql_objects-space.sql, mysql_objects-speed.sql and purge,sql files
+located in src/tools.mysql_drv were originally created for older MySQL versions.
+They can be used on recent MySQL versions, but do not use MySQL features for 
+improved performance available since MySQL 4.1. For new setups, you should 
+always use the *-4.1.sql files.
+
+3. UPDATING DSPAM.CONF
+
+mysql_drv needs to know how to connect to your MySQL database. You will need to
+specify this information in dspam.conf. This file already contains some example
+data:
+
+MySQLServer    /var/lib/mysql/mysql.sock
+MySQLPort
+MySQLUser      dspam
+MySQLPass      changeme
+MySQLDb        dspam
+MySQLCompress  true
+MySQLReconnect true
+
+If you are using MySQL >= 5.0.13 and have problems with DSPAM dropping the
+connection to your MySQL instance, then set MySQLReconnect to true to allow
+the mysql_drv to try to re-establish stale and/or dead connections.
+
+Or if you'd like to connect via TCP, use the IP address and port of the
+MySQL server. DSPAM checks to see if the first character of the HOSTNAME field
+is a slash, and if so will treat it like a socket file.
+
+4. NIGHTLY PURGE
+
+If you would like to purge the many stale tokens DSPAM will have lying around
+the database, you should run one of the provided purge scripts nightly.
+The dspam_clean tool can be configured to perform more granular cleansing,
+such as that of uninteresting data. See DSPAM's README for more information
+about the dspam_clean tool.
+
+If you are supporting TOE or TUM-mode users on your system, you will want to
+do one of the following:
+
+  1. Preferences Extensions
+
+     It is recommended you activate preferences extension support.
+     purge-4.1.sql will skip certain types of purges for users with TOE/TUM 
+     specified in their preferences.
+
+     NOTE: You should add a preference for any global users on your system, so
+     that their data is purged as if TOE-based (since global user data is
+     rarely updated). You can do this using:
+
+     dspam_admin add pref [username] trainingMode TOE
+
+  2. Global TOE Support
+
+     If you are using TOE globally (and not in individual user preferences), 
+     then you should update purge-4.1.sql, and set the default training mode
+     to TOE:
+
+     SET @TrainingMode    = 'TOE';
+
+     This will prevent the purging of stale tokens, which could cause serious
+     data loss in TOE databases (because tokens are never touched unless
+     an error has occured). All other purges should be safe even for TOE-mode
+     users.
+
+If you will NOT be supporting TOE users on your system, you may simply run
+the purge-4,1.sql script nightly, as-is.
+
+5. TUNING
+
+If you have a busy server, and find a lot of table locks, you may consider
+making a few tweaks to the MySQL configuration. Alternatively, you may
+consider InnoDB which performs row-level locking, but this is rarely necessary.
+
+  Increase key_buffer_size. If you have the memory, try at least 256M or 512M.
+
+  Increase table_cache. Try a higher value (some systems go as high as 1024).
+  This is related to the max_connections option and allows many file descriptors
+  to be shared among threads.
+
+  Increase myisam_sort_buffer_size to a higher value, depending on your memory.
+  Ideally, a few hundred MB would be great, but at least 64M would be an
+  improvement.
+
+  5.1 USING INNODB
+
+  On very large tables using InnoDB instead of MyISAM could speedup DSPAM because
+  InnoDB uses row-level locking while MyISAM uses table-level locking. The row-
+  level locking (used in InnoDB) may be faster because additional updates are not
+  waiting for the entire table (used in MyISAM) to unlock. In most cases using
+  table-level locking instead of row-level locking is considered to be faster but
+  since DSPAM can use many concurrent processes (especially if running in daemon
+  mode) where each of the processes maintains his own connection to MySQL, switching
+  to row-level locking (as used in InnoDB) could noticeable speedup the processing
+  throughput of DSPAM.
+
+  To convert all DSPAM tables to use InnoDB engine, execute the following SQL
+  commands against your DSPAM database:
+    ALTER TABLE `dspam_signature_data`
+      ENGINE = InnoDB;
+    ALTER TABLE `dspam_stats`
+      ENGINE = InnoDB;
+    ALTER TABLE `dspam_token_data`
+      ENGINE = InnoDB;
+    ALTER TABLE `dspam_virtual_uids`
+      ENGINE = InnoDB;
+
+  If you are using the preference extension then issue the following SQL command
+  to convert the preference extension table to InnoDB:
+    ALTER TABLE `dspam_preferences`
+      ENGINE = InnoDB;
+
+  When using InnoDB you can add additional constrains to the DSPAM tables so that
+  automatically when you remove a user in DSPAM all his/her tokens, signatures,
+  preferences and statistic data get removed as well.
+
+  !! IMPORTANT: Do not add those constrains if you are using DSPAM virtual user
+  aliases (aka: DSPAM in relay mode) !!
+
+  To add the additional constrains execute the following SQL commands against your
+  DSPAM database:
+    SET FOREIGN_KEY_CHECKS=0;
+    ALTER TABLE `dspam_signature_data`
+      ADD CONSTRAINT `dspam_signature_data_ibfk_1`
+      FOREIGN KEY (`uid`)
+      REFERENCES `dspam_virtual_uids` (`uid`)
+      ON DELETE CASCADE;
+    ALTER TABLE `dspam_stats`
+      ADD CONSTRAINT `dspam_stats_ibfk_1`
+      FOREIGN KEY (`uid`)
+      REFERENCES `dspam_virtual_uids` (`uid`)
+      ON DELETE CASCADE;
+    ALTER TABLE `dspam_token_data`
+      ADD CONSTRAINT `dspam_token_data_ibfk_1`
+      FOREIGN KEY (`uid`)
+      REFERENCES `dspam_virtual_uids` (`uid`)
+      ON DELETE CASCADE;
+    SET FOREIGN_KEY_CHECKS=1;
+
+  If you are using the preference extension then issue the following SQL 
+  commands to add the additional constrain to the preference extension table:
+    SET FOREIGN_KEY_CHECKS=0;
+    ALTER TABLE `dspam_preferences`
+      ADD CONSTRAINT `dspam_preferences_ibfk_1`
+      FOREIGN KEY (`uid`)
+      REFERENCES `dspam_virtual_uids` (`uid`)
+      ON DELETE CASCADE;
+    SET FOREIGN_KEY_CHECKS=1;
+
+  If you have added those constrains and later decide to switch to DSPAM virtual
+  user aliases or decide that you don't need/want those constrains then issue the
+  following SQL commands against your DSPAM database to remove the constrains:
+    SET FOREIGN_KEY_CHECKS=0;
+    ALTER TABLE `dspam_signature_data`
+      DROP FOREIGN KEY `dspam_signature_data_ibfk_1`;
+    ALTER TABLE `dspam_stats`
+      DROP FOREIGN KEY `dspam_stats_ibfk_1`;
+    ALTER TABLE `dspam_token_data`
+      DROP FOREIGN KEY `dspam_token_data_ibfk_1`;
+    SET FOREIGN_KEY_CHECKS=1;
+
+  If you have enabled the preference extension in DSPAM then do not forget to
+  remove the constrain from the dspam_preferences table as well:
+    SET FOREIGN_KEY_CHECKS=0;
+    ALTER TABLE `dspam_preferences`
+      DROP FOREIGN KEY `dspam_preferences_ibfk_1`;
+    SET FOREIGN_KEY_CHECKS=1;
+
+6. REPAIRING
+
+If your database gets corrupt, you'll need to repair it. This could take a
+long time, and so it may make sense to keep a hot backup somewhere. You can
+run a command like this to repair the database:
+
+mysqlcheck --all-databases --fast --auto-repair
+
+ERRORS
+
+Any SQL errors will be reported to LOGDIR/sql.errors as well as the standard
+syslog facilities (although the query will be truncated).
+
+QUESTIONS
+
+Please contact the dspam-dev mailing list with any questions or constructive
+feedback.
+
+Initial storage driver written by Jonathan A. Zdziarski <jonathan@nuclearelephant.com>
+and later enhanced by Stevan Bajic <stevan@bajic.ch> for DSPAM 3.9.0.

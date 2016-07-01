@@ -1,0 +1,10 @@
+prefix=/usr
+exec_prefix=/usr
+libdir=/usr/lib
+includedir=/usr/include
+
+Name: DSPAM
+Description: DSPAM Anti-Spam Library
+Version: 3.10.2
+Libs: -L${libdir} -ldspam
+Cflags: -I${includedir}/dspam

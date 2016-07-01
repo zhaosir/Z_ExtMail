@@ -1,0 +1,52 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head><title>DSPAM v3 Verwaltungsbereich</title>
+<meta http-equiv="Content-type" content="text/html; charset=utf-8">
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
+<link rel="STYLESHEET" href="$WEB_ROOT$/base.css">
+</head>
+<body bgcolor="#FFFFFF" text="#000000" link="#000000" vlink="#000000" alink="#000000">
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_USER$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=performance&amp;language=$LANG$">Leistungsmerkmale</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Einstellungen</a></li>
+		<li id="active"><a id="current" href="$CGI$?$USER$template=alerts&amp;language=$LANG$">Alarme</a></li>
+		<li><a href="$CGI$?$USER$template=quarantine&amp;language=$LANG$">Quarant&auml;ne ($TOTAL_QUARANTINED_MESSAGES$)</a></li>
+		<li><a href="$CGI$?$USER$template=analysis&amp;language=$LANG$">Analyse</a></li>
+		<li><a href="$CGI$?$USER$template=history&amp;language=$LANG$&amp;history_page=1">Historie</a></li>
+		$NAV_ADMIN$
+	</ul>
+</div>
+
+<div id="panel">
+
+<p>
+Alarme helfen ihnen Nachrichten in der Quarant&auml;nen-Liste zu finden. Wird der Text eines Alarmes in einer Nachricht gefunden, so wird die Spalte hervorgehoben. Dies soll ihnen helfen Nachrichten leicher zu finden die m&ouml;glicherweise nicht SPAM sind.
+</p>
+
+$ALERTS$
+<br>
+<FORM ACTION="$CGI$">
+<INPUT TYPE="HIDDEN" NAME="command" VALUE="addAlert">
+<INPUT TYPE="HIDDEN" NAME="template" VALUE="alerts">
+<INPUT TYPE="HIDDEN" NAME="user" VALUE="$REMOTE_USER$">
+<input type="hidden" name="language" value="$LANG$">
+<INPUT NAME="ALERT">&nbsp;<INPUT TYPE="SUBMIT" VALUE="Alarm hinzuf&uuml;gen">
+</FORM>
+
+</div>
+
+</BODY>
+</HTML>

@@ -1,0 +1,38 @@
+<HTML>
+<HEAD><TITLE>DSPAM v3 Suita Administrativ&#x0103;</TITLE>
+<link rel="icon" href="$WEB_ROOT$/favicon.ico" type="image/vnd.microsoft.icon">
+<LINK REL="STYLESHEET" HREF="$WEB_ROOT$/base.css">
+</HEAD>
+<BODY BGCOLOR=#FFFFFF TEXT=#000000 LINK=#000000 VLINK=#000000 ALINK=#000000>
+<div id="header">
+	<div id="logo">
+		<a href="$CGI$?language=$LANG$" title="Home"><img src="$WEB_ROOT$/dspam-logo-small.gif" alt="DSPAM Logo"></a>
+		<p>$DSPAMVERSION$</p>
+	</div>
+	<div id="userinfo">
+		$FORM_ADMIN$
+	</div>
+</div>
+
+<br clear="left">
+
+<div id="navcontainer">
+	<ul id="navlist">
+		<li><a href="$CGI$?$USER$template=status&amp;language=$LANG$">Starea Sistemului</a></li>
+		<li><a href="$CGI$?$USER$template=user&amp;language=$LANG$">Statistici Utilizatori</a></li>
+		<li><a href="$CGI$?$USER$template=preferences&amp;language=$LANG$">Administrare</a></li>
+		<li><a href="dspam.cgi?language=$LANG$">Centru de Control</a></li>
+	</ul>
+</div>
+
+<div id="panel">
+
+<H2>A avut loc o eroare</H2>
+$MESSAGE$
+
+</div>
+
+
+
+</body>
+</html>
